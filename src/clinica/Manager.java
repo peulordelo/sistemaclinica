@@ -3,27 +3,29 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class manager {
-    private List<paciente> pacientes;
+public class Manager {
+    private List<Paciente> pacientes;
     private List<Consulta> consultas;
     private final String ARQUIVO = "dados_clinica.dat";
 
-    public manager() {
+    public Manager() {
         pacientes = new ArrayList<>();
         consultas = new ArrayList<>();
         carregarDados();
     }
 
+    //CREATE
     public void cadastrarPaciente(int id, String nome) {
-        pacientes.add(new paciente(id, nome));
+        pacientes.add(new Paciente(id, nome));
         System.out.println("Paciente cadastrado com sucesso.");
     }
 
+    //READ
     public void listarPacientes() {
         if (pacientes.isEmpty()) {
             System.out.println("Nenhum paciente cadastrado.");
         } else {
-            for (paciente p : pacientes) {
+            for (Paciente p : pacientes) {
                 System.out.println(p);
             }
         }
@@ -39,10 +41,39 @@ public class manager {
         }
     }
 
-    // A especialidade foi removida daqui
-    public void marcarConsulta(int idPaciente, String dataHora) throws agendamento {
-        paciente pacienteEncontrado = null;
-        for (paciente p : pacientes) {
+    // UPDATE
+    public void atualizarPaciente(int id, String novoNome) {
+        for (Paciente p : pacientes) {
+            if (p.getId() == id) {
+                pacientes.remove(p);
+                pacientes.add(new Paciente(id, novoNome));
+                System.out.println("Dados do paciente atualizados com sucesso.");
+                return;
+            }
+        }
+        System.out.println("Paciente com ID " + id + " não encontrado.");
+    }
+
+    // DELETE
+    public void excluirPaciente(int id) {
+        Paciente pacienteRemover = null;
+        for (Paciente p : pacientes) {
+            if (p.getId() == id) {
+                pacienteRemover = p;
+                break;
+            }
+        }
+        if (pacienteRemover != null) {
+            pacientes.remove(pacienteRemover);
+            System.out.println("Paciente excluído com sucesso.");
+        } else {
+            System.out.println("Paciente com ID " + id + " não encontrado.");
+        }
+    }
+
+    public void marcarConsulta(int idPaciente, String dataHora) throws AgendamentoException {
+        Paciente pacienteEncontrado = null;
+        for (Paciente p : pacientes) {
             if (p.getId() == idPaciente) {
                 pacienteEncontrado = p;
                 break;
@@ -50,7 +81,7 @@ public class manager {
         }
 
         if (pacienteEncontrado == null) {
-            throw new agendamento("Erro: Paciente com ID " + idPaciente + " nao encontrado.");
+            throw new AgendamentoException("Erro: Paciente com ID " + idPaciente + " não encontrado.");
         }
 
         Consulta novaConsulta = new Consulta(pacienteEncontrado, dataHora);
@@ -69,11 +100,7 @@ public class manager {
             System.out.println("Erro ao salvar: " + e.getMessage());
         } finally {
             if (oos != null) {
-                try {
-                    oos.close();
-                } catch (IOException e) {
-                    System.out.println("Erro ao fechar o arquivo.");
-                }
+                try { oos.close(); } catch (IOException e) { System.out.println("Erro ao fechar."); }
             }
         }
     }
@@ -89,18 +116,14 @@ public class manager {
         ObjectInputStream ois = null;
         try {
             ois = new ObjectInputStream(new FileInputStream(ARQUIVO));
-            pacientes = (List<paciente>) ois.readObject();
+            pacientes = (List<Paciente>) ois.readObject();
             consultas = (List<Consulta>) ois.readObject();
             System.out.println("Dados carregados com sucesso.");
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Erro ao carregar: " + e.getMessage());
         } finally {
             if (ois != null) {
-                try {
-                    ois.close();
-                } catch (IOException e) {
-                    System.out.println("Erro ao fechar o arquivo.");
-                }
+                try { ois.close(); } catch (IOException e) { System.out.println("Erro ao fechar."); }
             }
         }
     }
